@@ -1,3 +1,5 @@
+!pip install jax jaxlib plotly tensorboardX wandb --quiet
+
 import jax
 from jax import lax
 import jax.numpy as jnp
