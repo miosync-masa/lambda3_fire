@@ -967,7 +967,6 @@ def laplacian_term(
 def lambda3_fire_vmc(
     r, spins, charges, colors, k_vectors,
     lambdaF_ext=None, rhoT_ext=0.0, sigmaS_ext=0.0,
-    experiment_type=None, intensity=None,
     adaptive_stop=False,
     config=Lambda3FireConfig()
 ):
@@ -983,6 +982,9 @@ def lambda3_fire_vmc(
     cooldown_level = 0.0
 
     global key_global
+
+    if lambdaF_ext is None or rhoT_ext == 0.0 or sigmaS_ext == 0.0:
+        lambdaF_ext, rhoT_ext, sigmaS_ext = experiment_to_transaction_params(config)
 
     for step in range(config.n_steps):
         c = compute_dynamic_cutoff(r_current, config=config)
@@ -1019,7 +1021,7 @@ def lambda3_fire_vmc(
             cooldown_target = config.cooldown_target_off if lambda_f[0] > 0.95 else config.cooldown_target_on
             cooldown_level = (1 - config.cooldown_ewma_alpha) * cooldown_level + config.cooldown_ewma_alpha * cooldown_target
             cooling_intensity = config.cooling_intensity_scaling * (cooldown_level / config.cooldown_target_on)
-            lambdaF_ext, rhoT_ext, sigmaS_ext = experiment_to_transaction_params(("cooling",), [cooling_intensity])
+            lambdaF_ext, rhoT_ext, sigmaS_ext = experiment_to_transaction_params(config)
 
         lap_term = laplacian_term(r_current)
         score_bind += 0.001 * jnp.sum(lap_term ** 2)
