@@ -1128,17 +1128,13 @@ if __name__ == "__main__":
 
     r, spins, charges, colors, k_vectors = setup_chloroferrocene()
 
-    lambdaF_ext, rhoT_ext, sigmaS_ext = experiment_to_transaction_params(
-        config.experiment_types, config.intensities
-    )
+    lambdaF_ext, rhoT_ext, sigmaS_ext = experiment_to_transaction_params(config)
 
     r_final, lambda_f_matrix = lambda3_fire_vmc(
         r, spins, charges, colors, k_vectors,
         lambdaF_ext=lambdaF_ext,
         rhoT_ext=rhoT_ext,
         sigmaS_ext=sigmaS_ext,
-        experiment_type=config.experiment_types,
-        intensity=config.intensities,
         adaptive_stop=True,
         config=config
     )
