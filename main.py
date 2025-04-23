@@ -151,11 +151,12 @@ def compute_dynamic_cutoff(
             - σs_ext (combined synchronization rate).
     """
     
-@partial(jit, static_argnames=["experiment_types"])
 def experiment_to_transaction_params(
-    experiment_types: Tuple[str, ...],
-    intensities: List[float]
+    config: Any  # Lambda3FireConfig expected
 ) -> Tuple[jnp.ndarray, float, float]:
+    experiment_types = config.experiment_types
+    intensities = config.intensities
+
     LambdaF_total = jnp.zeros(3)
     rhoT_total = 0.0
     sigmaS_list = []
@@ -196,7 +197,7 @@ def experiment_to_transaction_params(
             weights = lax.cond(P > 0, lambda _: weights_pos, lambda _: weights_neg, operand=None)
         elif exp_type == "photo_irradiation":
             I = intensity
-            rhoT = 1e-4 * I**0.75
+            rhoT = 1e-4 * I ** 0.75
             sigmaS = jnp.exp(-1e-4 * I)
             weights = jnp.array([
                 jnp.exp(-1e-4 * I),
@@ -220,7 +221,6 @@ def experiment_to_transaction_params(
         rhoT_total += rhoT
         sigmaS_list.append(sigmaS)
 
-    # Nonlinear interaction boosts (correlation effects between experimental types)
     correlation_rhoT_boost = 0.0
     if "heating" in experiment_types and "photo_irradiation" in experiment_types:
         T = intensities[experiment_types.index("heating")]
@@ -242,7 +242,6 @@ def experiment_to_transaction_params(
         I = intensities[experiment_types.index("photo_irradiation")]
         correlation_rhoT_boost += 1e-6 * jnp.sqrt(E * I)
 
-    # Final combined output
     LambdaF_ext = LambdaF_total / jnp.sum(LambdaF_total)
     sigmaS_ext = jnp.prod(jnp.array(sigmaS_list))
     rhoT_ext = rhoT_total + correlation_rhoT_boost
